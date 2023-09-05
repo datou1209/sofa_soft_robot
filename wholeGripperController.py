@@ -62,28 +62,28 @@ class WholeGripperController(Sofa.Core.Controller):
 
     def onKeypressedEvent(self,e):
 
-        increment = 0.01  #0.01
+        increment = 0.001  #0.01
 
         if e["key"] == Sofa.constants.Key.KP_4:
             
             pressureValue = self.constraints[0].value.value[0] + increment
-            if pressureValue > 6.0:
-                pressureValue = 6.0
+            if pressureValue > 3.0:
+                pressureValue = 3.0
             self.constraints[0].value = [pressureValue]
 
 
         if e["key"] == Sofa.constants.Key.KP_5:
         
             pressureValue = self.constraints[1].value.value[0] + increment
-            if pressureValue > 6.0:
-                pressureValue = 6.0
+            if pressureValue > 3.0:
+                pressureValue = 3.0
             self.constraints[1].value = [pressureValue]
 
         if e["key"] == Sofa.constants.Key.KP_6:
         
             pressureValue = self.constraints[2].value.value[0] + increment
-            if pressureValue > 6.0:
-                pressureValue = 6.0
+            if pressureValue > 3.0:
+                pressureValue = 3.0
             self.constraints[2].value = [pressureValue]
 
         if e["key"] == Sofa.constants.Key.KP_1:
