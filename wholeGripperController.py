@@ -4,7 +4,7 @@ import Sofa.Core
 from Sofa.constants import *
 import math
 
-num = 3
+num = 2
 
 # class WholeGripperController(Sofa.Core.Controller):
 
@@ -79,12 +79,12 @@ class WholeGripperController(Sofa.Core.Controller):
                 pressureValue = 3.0
             self.constraints[1].value = [pressureValue]
 
-        if e["key"] == Sofa.constants.Key.KP_6:
+        # if e["key"] == Sofa.constants.Key.KP_6:
         
-            pressureValue = self.constraints[2].value.value[0] + increment
-            if pressureValue > 3.0:
-                pressureValue = 3.0
-            self.constraints[2].value = [pressureValue]
+        #     pressureValue = self.constraints[2].value.value[0] + increment
+        #     if pressureValue > 3.0:
+        #         pressureValue = 3.0
+        #     self.constraints[2].value = [pressureValue]
 
         if e["key"] == Sofa.constants.Key.KP_1:
         
@@ -100,10 +100,10 @@ class WholeGripperController(Sofa.Core.Controller):
                 pressureValue = 0
             self.constraints[1].value = [pressureValue]
 
-        if e["key"] == Sofa.constants.Key.KP_3:
+        # if e["key"] == Sofa.constants.Key.KP_3:
         
-            pressureValue = self.constraints[2].value.value[0] - increment
-            if pressureValue < 0:
-                pressureValue = 0
-            self.constraints[2].value = [pressureValue]
+        #     pressureValue = self.constraints[2].value.value[0] - increment
+        #     if pressureValue < 0:
+        #         pressureValue = 0
+        #     self.constraints[2].value = [pressureValue]
 

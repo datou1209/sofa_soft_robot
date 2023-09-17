@@ -6,7 +6,7 @@ from wholeGripperController import WholeGripperController
 youngModulusFingers = 600
 youngModulusStiffLayerFingers = 1500
 
-rotation1 = [120, 0, 0]
+rotation1 = [0, 180, 0]
 rotation2 = [0, 0, 0]
 rotation3 = [240, 0, 0]
 rotations = [rotation1, rotation2, rotation3]
@@ -26,8 +26,27 @@ angles = [0]
 
 def createScene(rootNode):
     rootNode.addObject('RequiredPlugin',
-                       pluginName='SoftRobots SofaPython3 SofaLoader SofaSimpleFem SofaEngine SofaDeformable SofaImplicitOdeSolver SofaConstraint SofaSparseSolver SofaMeshCollision SofaRigid SofaOpenglVisual SofaCUDA')
-
+                       pluginName='SoftRobots SofaPython3 SofaLoader SofaSimpleFem SofaEngine SofaDeformable SofaImplicitOdeSolver SofaConstraint SofaSparseSolver SofaMeshCollision SofaRigid SofaOpenglVisual')
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.AnimationLoop') # Needed to use components [FreeMotionAnimationLoop]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Collision.Detection.Algorithm') # Needed to use components [BVHNarrowPhase,BruteForceBroadPhase,CollisionPipeline]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Collision.Detection.Intersection') # Needed to use components [LocalMinDistance]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Collision.Geometry') # Needed to use components [LineCollisionModel,PointCollisionModel,TriangleCollisionModel]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Collision.Response.Contact') # Needed to use components [DefaultContactManager]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Constraint.Lagrangian.Correction') # Needed to use components [LinearSolverConstraintCorrection]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Constraint.Lagrangian.Solver') # Needed to use components [GenericConstraintSolver]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Engine.Select') # Needed to use components [BoxROI]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.IO.Mesh') # Needed to use components [MeshOBJLoader,MeshSTLLoader,MeshVTKLoader]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.LinearSolver.Direct') # Needed to use components [SparseLDLSolver]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Mapping.Linear') # Needed to use components [BarycentricMapping]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Mass') # Needed to use components [UniformMass]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.ODESolver.Backward') # Needed to use components [EulerImplicitSolver]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Setting') # Needed to use components [BackgroundSetting]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.SolidMechanics.FEM.Elastic') # Needed to use components [TetrahedronFEMForceField]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.SolidMechanics.Spring') # Needed to use components [RestShapeSpringsForceField]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.StateContainer') # Needed to use components [MechanicalObject]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Topology.Container.Constant') # Needed to use components [MeshTopology]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.Component.Visual') # Needed to use components [VisualStyle]  
+    rootNode.addObject('RequiredPlugin', name='Sofa.GL.Component.Rendering3D') # Needed to use components [OglModel,OglSceneFrame] 
     rootNode.addObject('VisualStyle',
                        displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideBoundingCollisionModels hideForceFields showInteractionForceFields hideWireframe showBehavior')
     rootNode.gravity.value = [9810, 0, 0]
@@ -37,7 +56,7 @@ def createScene(rootNode):
     rootNode.addObject('DefaultPipeline')
     rootNode.addObject('BruteForceBroadPhase')
     rootNode.addObject('BVHNarrowPhase')
-    rootNode.addObject('DefaultContactManager', response='FrictionContact', responseParams='mu=0.6')
+    rootNode.addObject('DefaultContactManager', response='FrictionContactConstraint', responseParams='mu=0.6')
     rootNode.addObject('LocalMinDistance', name='Proximity', alarmDistance=5, contactDistance=1, angleCone=0.0)
 
     rootNode.addObject('BackgroundSetting', color=[0, 0.168627, 0.211765, 1.])
@@ -65,12 +84,14 @@ def createScene(rootNode):
 
         # finger.addObject('MeshVTKLoader', name='loader', filename='data/mesh/out.vtk',
         #                  rotation=[0, 0, 0], translation=[0, 0, 0])
-        finger.addObject('MeshVTKLoader', name='loader', filename='data/mesh/snake_out.vtk',
+        finger.addObject('MeshVTKLoader', name='loader', filename='data1/out.vtk',
                          rotation=[0, 0, 0], translation=[0, 0, 0])
         finger.addObject('MeshTopology', src='@loader', name='container')
-
-        finger.addObject('MechanicalObject', name='tetras', template='CudaVec3', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
+        
+        finger.addObject('MechanicalObject', name='tetras', template='Vec3', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
         finger.addObject('UniformMass', totalMass=0.01)
+        finger.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large', poissonRatio=0.3,
+                                       youngModulus=600)
         finger.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large', poissonRatio=0.3,
                          youngModulus=800)
         
@@ -172,11 +193,11 @@ def createScene(rootNode):
         # Constraint							 #
         ##########################################
         #cavity = []
-    for j in range(3):
+    for j in range(2):
         cavity = finger.addChild('cavity' + str(j+1))
         # cavity.addObject('MeshVTKLoader', name='loader', filename='data/mesh/newbodyin.vtk',
         #                 translation=[0, 0, 5], rotation=[rotations[j]], scale=1.0)
-        cavity.addObject('MeshVTKLoader', name='loader', filename='data/mesh/snake_in.vtk',
+        cavity.addObject('MeshVTKLoader', name='loader', filename='data1/in.vtk',
                         translation=[0, 0, 0], rotation=[rotations[j]], scale=1.0)
         cavity.addObject('MeshTopology', src='@loader', name='topo')
         cavity.addObject('MechanicalObject', name='cavity')
@@ -190,7 +211,7 @@ def createScene(rootNode):
     #########################################
 
     collisionFinger = finger.addChild('collisionFinger')
-    collisionFinger.addObject('MeshSTLLoader', name='loader', filename='data/mesh/snake_out.stl',
+    collisionFinger.addObject('MeshSTLLoader', name='loader', filename='data1/out.stl',
                                 translation=translations[0], rotation=[360 - angles[0] * 180 / math.pi, 0, 0])
     collisionFinger.addObject('MeshTopology', src='@loader', name='topo')
     collisionFinger.addObject('MechanicalObject', name='collisMech')
