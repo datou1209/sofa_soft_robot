@@ -6,7 +6,7 @@ from wholeGripperController import WholeGripperController
 youngModulusFingers = 600
 youngModulusStiffLayerFingers = 1500
 
-rotation1 = [0, 180, 0]
+rotation1 = [180, 0, 0]
 rotation2 = [0, 0, 0]
 rotation3 = [240, 0, 0]
 rotations = [rotation1, rotation2, rotation3]
@@ -84,7 +84,7 @@ def createScene(rootNode):
 
         # finger.addObject('MeshVTKLoader', name='loader', filename='data/mesh/out.vtk',
         #                  rotation=[0, 0, 0], translation=[0, 0, 0])
-        finger.addObject('MeshVTKLoader', name='loader', filename='data1/out.vtk',
+        finger.addObject('MeshVTKLoader', name='loader', filename='data/meshes/snake_out.vtk',
                          rotation=[0, 0, 0], translation=[0, 0, 0])
         finger.addObject('MeshTopology', src='@loader', name='container')
         
@@ -197,7 +197,7 @@ def createScene(rootNode):
         cavity = finger.addChild('cavity' + str(j+1))
         # cavity.addObject('MeshVTKLoader', name='loader', filename='data/mesh/newbodyin.vtk',
         #                 translation=[0, 0, 5], rotation=[rotations[j]], scale=1.0)
-        cavity.addObject('MeshVTKLoader', name='loader', filename='data1/in.vtk',
+        cavity.addObject('MeshVTKLoader', name='loader', filename='data/meshes/snake_in.vtk',
                         translation=[0, 0, 0], rotation=[rotations[j]], scale=1.0)
         cavity.addObject('MeshTopology', src='@loader', name='topo')
         cavity.addObject('MechanicalObject', name='cavity')
@@ -211,7 +211,7 @@ def createScene(rootNode):
     #########################################
 
     collisionFinger = finger.addChild('collisionFinger')
-    collisionFinger.addObject('MeshSTLLoader', name='loader', filename='data1/out.stl',
+    collisionFinger.addObject('MeshSTLLoader', name='loader', filename='data/meshes/snake_out.stl',
                                 translation=translations[0], rotation=[360 - angles[0] * 180 / math.pi, 0, 0])
     collisionFinger.addObject('MeshTopology', src='@loader', name='topo')
     collisionFinger.addObject('MechanicalObject', name='collisMech')

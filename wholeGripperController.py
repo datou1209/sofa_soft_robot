@@ -62,7 +62,7 @@ class WholeGripperController(Sofa.Core.Controller):
 
     def onKeypressedEvent(self,e):
 
-        increment = 0.001  #0.01
+        increment = 0.006  #0.01
 
         if e["key"] == Sofa.constants.Key.KP_4:
             

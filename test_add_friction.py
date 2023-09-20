@@ -1,7 +1,7 @@
-from ast import mod
-from audioop import mul
-from pyexpat import model
-from turtle import mode
+# from ast import mod
+# from audioop import mul
+# from pyexpat import model
+# from turtle import mode
 import Sofa
 import math
 from stlib3.scene import MainHeader, ContactHeader
@@ -13,24 +13,35 @@ youngModulusStiffLayerFingers = 1500
 
 rotation1 = [180, 0, 0]
 rotation2 = [0, 0, 0]
-rotation3 = [240, 0, 0]
-rotations = [rotation1, rotation2,rotation3]
+rotation3 = [180, 0, 0]
+rotation4 = [0, 0, 0]
+rotation5 = [180, 0, 0]
+rotation6 = [0, 0, 0]
+rotations = [rotation1, rotation2, rotation3, rotation4, rotation5, rotation6]
 
 translateFinger1 = [0, 0, 0]
 translations = [translateFinger1]
+translationCavity1 = [0, 0, 0]
+translationCavity2 = [0, 0, 0]
+translationCavity3 = [106, 0, 0]
+translationCavity4 = [106, 0, 0]
+translationCavity5 = [212, 0, 0]
+translationCavity6 = [212, 0, 0]
+translationsCavity = [translationCavity1, translationCavity2, translationCavity3, translationCavity4, translationCavity5, translationCavity6]
 
 angles = [0]
 
-def Floor(parentNode, color=[0.5, 0.5, 0.5, 1.], rotation=[0, 0, 0], translation=[-500, -500, -20]):
+def Floor(parentNode, color=[0.5, 0.5, 0.5, 1.], rotation=[0, 0, 0], translation=[0, -25, 0]):
     floor = parentNode.addChild('Floor')
-    floor.addObject('MeshOBJLoader', name='loader', filename='mesh/square1.obj', triangulate=True, scale=1000, rotation=rotation,
+    floor.addObject('MeshOBJLoader', name='loader', filename='data/mesh/floorFlat.obj', triangulate=True, scale=20, rotation=rotation,
                     translation=translation)
     floor.addObject('OglModel', src='@loader', color=color)
     floor.addObject('MeshTopology', src='@loader', name='topo')
     floor.addObject('MechanicalObject', src='@loader')
-    floor.addObject('TriangleCollisionModel', simulated=False, moving=False)
-    floor.addObject('LineCollisionModel', simulated=False, moving=False)
-    floor.addObject('PointCollisionModel', simulated=False, moving=False)
+    floor.addObject('TriangleCollisionModel')
+    floor.addObject('LineCollisionModel')
+    floor.addObject('PointCollisionModel')
+    floor.addObject('UncoupledConstraintCorrection')
     return floor
 
 
@@ -44,7 +55,7 @@ class SnakeRobot:
             self.node.addObject('EulerImplicitSolver', name='odesolver', rayleighStiffness=0.1, rayleighMass=0.1)
             self.node.addObject('SparseLDLSolver', template="CompressedRowSparseMatrixMat3x3d" )
             self.node.addObject("GenericConstraintCorrection", solverName="SparseLDLSolver")
-            self.node.addObject('MeshVTKLoader', name='loader', filename='data/meshes/snake_out.vtk',
+            self.node.addObject('MeshVTKLoader', name='loader', filename='data/meshes/whole_snake.vtk',
                                 rotation=[0, 0, 0], translation=[0, 0, 0])
             self.node.addObject('MeshTopology', src='@loader', name='container')
             self.node.addObject('MechanicalObject', name='tetras', template='Vec3d', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
@@ -59,10 +70,11 @@ class SnakeRobot:
             self.__addVisualModel()
 
     def __addCavity(self):
-        for j in range(2):
+        
+        for j in range(6):
             cavity = self.node.addChild('cavity' + str(j+1))
-            cavity.addObject('MeshVTKLoader', name='loader', filename='data/meshes/snake_in.vtk',
-                        translation=[0, 0, 0], rotation=[rotations[j]], scale=1.0)
+            cavity.addObject('MeshVTKLoader', name='loader', filename='data/meshes/whole_snake_in.vtk',
+                        translation=[translationsCavity[j]], rotation=[rotations[j]], scale=1.0)                                                                                                                                                                              
             cavity.addObject('MeshTopology', src='@loader', name='topo')
             cavity.addObject('MechanicalObject', name='cavity')
             #应该是加了这个的原因会跳动
@@ -73,11 +85,10 @@ class SnakeRobot:
 
     def addCollisionModel(self):
         modelContact = self.node.addChild('CollisionModel')
-        modelContact.addObject('MeshGmshLoader', name='loader', filename='data/meshes/snake_out.msh',
+        modelContact.addObject('MeshGmshLoader', name='loader', filename='data/meshes/whole_snake.msh',
                                 translation=translations[0], rotation=[0, 0, 0])
         modelContact.addObject('MeshTopology', src='@loader', name='topo')
         modelContact.addObject('MechanicalObject', name='collisMech', showObject=False)
-        modelContact.addObject('UncoupledConstraintCorrection')
         modelContact.addObject('TriangleCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
         modelContact.addObject('LineCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
         modelContact.addObject('PointCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
@@ -85,7 +96,7 @@ class SnakeRobot:
 
     def __addVisualModel(self):
         modelVisu = self.node.addChild('visu')
-        modelVisu.addObject('MeshSTLLoader', name='loader', filename='data/meshes/snake_out.stl')
+        modelVisu.addObject('MeshSTLLoader', name='loader', filename='data/meshes/whole_snake.stl')
         modelVisu.addObject('OglModel', src='@loader', color=[0.7, 0.7, 0.7, 0.6], translation=translations[0],
                             rotation=[0, 0, 0])
         modelVisu.addObject('BarycentricMapping')
@@ -101,7 +112,7 @@ def createScene(rootNode):
     rootNode.addObject('VisualStyle',
                        displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideBoundingCollisionModels showForceFields showInteractionForceFields hideWireframe')
     
-    MainHeader(rootNode, gravity=[0.0, 0.0, -9810.0], plugins=['SoftRobots', 'SofaPython3',
+    MainHeader(rootNode, dt=0.001, gravity=[0.0, -9810.0, 0.0], plugins=['SoftRobots', 'SofaPython3',
                                                      "Sofa.Component.AnimationLoop",
                                                      # Needed to use components FreeMotionAnimationLoop
                                                      "Sofa.Component.Collision.Detection.Algorithm",
@@ -158,7 +169,7 @@ def createScene(rootNode):
     rootNode.addObject('DefaultPipeline')
     rootNode.addObject('BruteForceBroadPhase')
     rootNode.addObject('BVHNarrowPhase')
-    #rootNode.addObject('CollisionResponse', response="FrictionContactConstraint", responseParams="mu=0.8")
+    rootNode.addObject('DefaultContactManager', response="FrictionContactConstraint", responseParams="mu=1.2")
     # rootNode.addObject('DefaultContactManager', response='FrictionContact', responseParams='mu=1.2')
     # rootNode.addObject('LocalMinDistance', alarmDistance=5, contactDistance=1, angleCone=0.0)
     ContactHeader(rootNode, alarmDistance=5, contactDistance=1, frictionCoef=1.2)
