@@ -58,8 +58,8 @@ class SnakeRobot:
             self.node.addObject('MeshVTKLoader', name='loader', filename='data/mesh_fiber/fiber_out.vtk',
                                 rotation=[0, 0, 0], translation=[0, 0, 0])
             self.node.addObject('MeshTopology', src='@loader', name='container')
-            self.node.addObject('MechanicalObject', name='tetras', template='Vec3', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
-            self.node.addObject('UniformMass', totalMass=0.01)
+            self.node.addObject('MechanicalObject', name='tetras', template='Vec3d', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
+            self.node.addObject('UniformMass', totalMass=10)
             self.node.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', poissonRatio=poissonRation,
                                 youngModulus=youngModulus)
             
@@ -68,7 +68,7 @@ class SnakeRobot:
 
             self.__addCavity()
             self.__addVisualModel()
-            # self.__addFiber()
+            self.__addFiber()
 
     def __addCavity(self):
         
@@ -89,9 +89,9 @@ class SnakeRobot:
         for k in range(19):
             fiber = self.node.addChild('fiber' + str(k+1))
             fiber.addObject('MechanicalObject', name='fiber', template='Rigid3d')
-            fiber.addObject('UniformMass', totalMass=0.00001)
+            fiber.addObject('UniformMass', totalMass=0.001)
             fiber_collision = fiber.addChild("collision")
-            fiber_collision.addObject("MeshVTKLoader", name="loader", filename="data/mesh_fiber/fiber.vtk",
+            fiber_collision.addObject("MeshGmshLoader", name="loader", filename="data/mesh_fiber/fiber.msh",
                                     translation=[0, 0, 4+5*k],rotation=[0, 0, 0], scale=1.0)
             fiber_collision.addObject("MeshTopology", src="@loader")
             fiber_collision.addObject("MechanicalObject", template="Vec3")
@@ -110,9 +110,9 @@ class SnakeRobot:
                                 translation=translations[0], rotation=[0, 0, 0])
         modelContact.addObject('MeshTopology', src='@loader', name='topo')
         modelContact.addObject('MechanicalObject', name='collisMech', showObject=False)
-        modelContact.addObject('TriangleCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
-        modelContact.addObject('LineCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
-        modelContact.addObject('PointCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
+        modelContact.addObject('TriangleCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
+        modelContact.addObject('LineCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
+        modelContact.addObject('PointCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
         modelContact.addObject('BarycentricMapping')
 
     def __addVisualModel(self):
