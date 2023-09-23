@@ -11,8 +11,8 @@ from wholeGripperController import WholeGripperController
 youngModulusFingers = 600
 youngModulusStiffLayerFingers = 1500
 
-rotation1 = [180, 0, 0]
-rotation2 = [0, 0, 0]
+rotation1 = [0, 0, 0]
+rotation2 = [0, 0, 180]
 rotation3 = [180, 0, 0]
 rotation4 = [0, 0, 0]
 rotation5 = [180, 0, 0]
@@ -31,7 +31,7 @@ translationsCavity = [translationCavity1, translationCavity2, translationCavity3
 
 angles = [0]
 
-def Floor(parentNode, color=[0.5, 0.5, 0.5, 1.], rotation=[0, 0, 0], translation=[0, -25, 0]):
+def Floor(parentNode, color=[0.5, 0.5, 0.5, 1.], rotation=[0, 0, 0], translation=[0, -30, 0]):
     floor = parentNode.addChild('Floor')
     floor.addObject('MeshOBJLoader', name='loader', filename='data/mesh/floorFlat.obj', triangulate=True, scale=20, rotation=rotation,
                     translation=translation)
@@ -55,10 +55,10 @@ class SnakeRobot:
             self.node.addObject('EulerImplicitSolver', name='odesolver', rayleighStiffness=0.1, rayleighMass=0.1)
             self.node.addObject('SparseLDLSolver', template="CompressedRowSparseMatrixMat3x3d" )
             self.node.addObject("GenericConstraintCorrection", solverName="SparseLDLSolver")
-            self.node.addObject('MeshVTKLoader', name='loader', filename='data/meshes/whole_snake.vtk',
+            self.node.addObject('MeshVTKLoader', name='loader', filename='data/mesh_fiber/fiber_out.vtk',
                                 rotation=[0, 0, 0], translation=[0, 0, 0])
             self.node.addObject('MeshTopology', src='@loader', name='container')
-            self.node.addObject('MechanicalObject', name='tetras', template='Vec3d', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
+            self.node.addObject('MechanicalObject', name='tetras', template='Vec3', showObject=True, showObjectScale=1, showIndices=True, showIndicesScale=4e-5)
             self.node.addObject('UniformMass', totalMass=0.01)
             self.node.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', poissonRatio=poissonRation,
                                 youngModulus=youngModulus)
@@ -68,12 +68,13 @@ class SnakeRobot:
 
             self.__addCavity()
             self.__addVisualModel()
+            # self.__addFiber()
 
     def __addCavity(self):
         
-        for j in range(6):
+        for j in range(2):
             cavity = self.node.addChild('cavity' + str(j+1))
-            cavity.addObject('MeshVTKLoader', name='loader', filename='data/meshes/whole_snake_in.vtk',
+            cavity.addObject('MeshVTKLoader', name='loader', filename='data/mesh_fiber/fiber_in.vtk',
                         translation=[translationsCavity[j]], rotation=[rotations[j]], scale=1.0)                                                                                                                                                                              
             cavity.addObject('MeshTopology', src='@loader', name='topo')
             cavity.addObject('MechanicalObject', name='cavity')
@@ -83,20 +84,40 @@ class SnakeRobot:
                         triangles='@topo.triangles', valueType='pressure')
             cavity.addObject('BarycentricMapping', name='mapping')
 
+    def __addFiber(self):
+
+        for k in range(19):
+            fiber = self.node.addChild('fiber' + str(k+1))
+            fiber.addObject('MechanicalObject', name='fiber', template='Rigid3d')
+            fiber.addObject('UniformMass', totalMass=0.00001)
+            fiber_collision = fiber.addChild("collision")
+            fiber_collision.addObject("MeshVTKLoader", name="loader", filename="data/mesh_fiber/fiber.vtk",
+                                    translation=[0, 0, 4+5*k],rotation=[0, 0, 0], scale=1.0)
+            fiber_collision.addObject("MeshTopology", src="@loader")
+            fiber_collision.addObject("MechanicalObject", template="Vec3")
+            fiber_collision.addObject("RigidMapping")
+            fiber_collision.addObject("TriangleCollisionModel", name="TriangleModel")
+            fiber_collision.addObject("LineCollisionModel", name="LineModel")
+            fiber_collision.addObject("PointCollisionModel", name="PointModel")
+            fiber_visu = fiber_collision.addChild('visu')
+            fiber_visu.addObject("OglModel", name="visu", src="@../loader")
+            fiber_visu.addObject("BarycentricMapping")
+            
+
     def addCollisionModel(self):
         modelContact = self.node.addChild('CollisionModel')
-        modelContact.addObject('MeshGmshLoader', name='loader', filename='data/meshes/whole_snake.msh',
+        modelContact.addObject('MeshGmshLoader', name='loader', filename='data/mesh_fiber/fiber_out.msh',
                                 translation=translations[0], rotation=[0, 0, 0])
         modelContact.addObject('MeshTopology', src='@loader', name='topo')
         modelContact.addObject('MechanicalObject', name='collisMech', showObject=False)
-        modelContact.addObject('TriangleCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
-        modelContact.addObject('LineCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
-        modelContact.addObject('PointCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=False)
+        modelContact.addObject('TriangleCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
+        modelContact.addObject('LineCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
+        modelContact.addObject('PointCollisionModel', contactStiffness=10.0, group=0, contactFriction=1.2, selfCollision=True)
         modelContact.addObject('BarycentricMapping')
 
     def __addVisualModel(self):
         modelVisu = self.node.addChild('visu')
-        modelVisu.addObject('MeshSTLLoader', name='loader', filename='data/meshes/whole_snake.stl')
+        modelVisu.addObject('MeshSTLLoader', name='loader', filename='data/mesh_fiber/fiber_out.STL')
         modelVisu.addObject('OglModel', src='@loader', color=[0.7, 0.7, 0.7, 0.6], translation=translations[0],
                             rotation=[0, 0, 0])
         modelVisu.addObject('BarycentricMapping')
@@ -114,8 +135,10 @@ def createScene(rootNode):
     
     MainHeader(rootNode, dt=0.001, gravity=[0.0, -9810.0, 0.0], plugins=['SoftRobots', 'SofaPython3',
                                                      "Sofa.Component.AnimationLoop",
+                                                
                                                      # Needed to use components FreeMotionAnimationLoop
                                                      "Sofa.Component.Collision.Detection.Algorithm",
+                                                     "Sofa.Component.Mapping.NonLinear",
                                                      # Needed to use components BVHNarrowPhase, BruteForceBroadPhase, DefaultPipeline
                                                      "Sofa.Component.Collision.Detection.Intersection",
                                                      # Needed to use components LocalMinDistance
@@ -174,6 +197,7 @@ def createScene(rootNode):
     # rootNode.addObject('LocalMinDistance', alarmDistance=5, contactDistance=1, angleCone=0.0)
     ContactHeader(rootNode, alarmDistance=5, contactDistance=1, frictionCoef=1.2)
     rootNode.addObject('OglSceneFrame', style='Arrows', alignment='TopRight')
+    # rootNode.addObject('CudaCollisionDetection')
 
     Floor(rootNode)
 
